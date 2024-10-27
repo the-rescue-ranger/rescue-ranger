@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 const Emergency = () => {
-  const [heartRate, setHeartRate] = useState(90); // Sample data
-  const [pulseRate, setPulseRate] = useState(50); // Sample data
+  const [heartRate] = useState(90); // Sample data
+  const [pulseRate] = useState(50); // Sample data
   const [isEmergency, setIsEmergency] = useState(false);
 
   useEffect(() => {
