@@ -3,49 +3,86 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Styles */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f4f8; /* Light background for contrast */
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f7fa;
 }
 
-.tab {
-  padding: 15px;
-  font-size: 1.125rem; /* Equivalent to text-lg */
-  font-weight: bold; 
-  color: #333;
-  transition: background-color 0.3s, transform 0.3s;
-  border-radius: 0.5rem; /* Rounded corners */
+/* App Container */
+.app-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
 }
 
-.tab:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007BFF;
+  padding: 15px 30px;
+  color: white;
 }
 
-footer {
-  position: relative;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: white;
-  padding: 10px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #ffdd57;
+}
+
+/* Hero Section */
+.hero-section {
   text-align: center;
+  padding: 50px 20px;
+  background: linear-gradient(135deg, #ff6f61, #de6a86);
+  color: white;
+  border-radius: 10px;
+  animation: fadeIn 1s;
 }
 
-h1, h2, h3 {
-  color: #2c3e50; /* Darker color for headings */
+.hero-title {
+  font-size: 3rem;
+  margin-bottom: 10px;
 }
 
-p {
-  color: #34495e; /* Slightly lighter color for paragraphs */
+.hero-subtitle {
+  font-size: 1.5rem;
 }
 
-.bg-white {
-  background-color: #ffffff; /* Bright background for cards */
+/* Emergency Section */
+.emergency-container {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
+
+.emergency-title {
+  font-size: 2rem;
+  color: #dc3545;
+}
+
+.emergency-message {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Add more styles for other components as needed */
