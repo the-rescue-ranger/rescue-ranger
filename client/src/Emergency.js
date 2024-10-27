@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 
 const Emergency = () => {
-  const [heartRate, setHeartRate] = useState(80); // Example initial value
-  const [pulseRate, setPulseRate] = useState(60); // Example initial value
   const [sosAlert, setSosAlert] = useState(false);
   const [alertDuration, setAlertDuration] = useState(0); // Duration of abnormal readings
 
+  // Example simulated heart rate and pulse rate values
+  const heartRate = 105; // Simulate high heart rate
+  const pulseRate = 55; // Simulate low pulse rate
+
   useEffect(() => {
     const interval = setInterval(() => {
-      // Simulate reading new heart rate and pulse rate values
-      // Replace this with your actual data fetching logic
       if (heartRate > 100 && pulseRate < 60) {
         setAlertDuration((prev) => prev + 1);
         if (alertDuration >= 5) { // 5 minutes of abnormal readings
@@ -22,7 +22,7 @@ const Emergency = () => {
     }, 60000); // Check every minute
 
     return () => clearInterval(interval); // Cleanup on component unmount
-  }, [heartRate, pulseRate, alertDuration]);
+  }, [alertDuration]);
 
   return (
     <div className="p-5 bg-white rounded-lg shadow-lg">
