@@ -17,3 +17,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.transition {
+  transition: all 0.3s ease-in-out;
+}
+.bg-custom {
+  background-color: #f9fafb; /* Light background */
+}

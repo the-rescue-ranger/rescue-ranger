@@ -9,30 +9,33 @@ const Emergency = () => {
   const pulseRate = 55; // Simulated low pulse rate
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (heartRate > 100 && pulseRate < 60) {
-        setAlertDuration((prev) => prev + 1);
-        if (alertDuration >= 5) {
-          setSosAlert(true);
-        }
-      } else {
-        setAlertDuration(0);
-        setSosAlert(false);
-      }
-    }, 60000);
+    if (heartRate > 100 && pulseRate < 60) {
+      setAlertDuration((prev) => prev + 1);
+    } else {
+      setAlertDuration(0);
+      setSosAlert(false);
+    }
 
-    return () => clearInterval(interval);
-  }, [alertDuration]);
+    if (alertDuration >= 5) {
+      setSosAlert(true);
+    }
+
+    const timer = setInterval(() => {
+      setAlertDuration((prev) => (prev < 5 ? prev + 1 : prev));
+    }, 60000); // Check every minute
+
+    return () => clearInterval(timer);
+  }, [alertDuration, heartRate, pulseRate]);
 
   return (
     <motion.div
-      className="p-5 bg-white rounded-lg shadow-lg"
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.9, opacity: 0 }}
+      className="p-5"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className="text-4xl font-bold">Emergency Alert</h1>
+      <h1 className="text-4xl font-bold">Emergency Alerts</h1>
       {sosAlert ? (
         <div className="mt-4 text-red-600">
           <p className="text-xl">🚨 SOS Alert! 🚨</p>
