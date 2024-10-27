@@ -1,20 +1,10 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Filler,
-} from 'chart.js';
-
-// Register the required components
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler);
+import { motion } from "framer-motion";
 
 const GoogleMapWidget = () => {
   return (
-    <div className="mt-8">
+    <motion.div className="mt-8">
       <h3 className="text-xl font-bold">Live Location</h3>
       <iframe
         title="Google Maps"
@@ -25,7 +15,7 @@ const GoogleMapWidget = () => {
         loading="lazy"
         className="rounded-lg shadow-lg"
       ></iframe>
-    </div>
+    </motion.div>
   );
 };
 
@@ -53,14 +43,20 @@ const Status = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
+    <motion.div
+      className="p-5"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <h2 className="text-2xl font-bold mb-5">Status Overview</h2>
-      <div className="bg-white p-5 rounded-lg shadow-lg mb-8 transition-transform transform hover:scale-105">
+      <div className="bg-white p-5 rounded-lg shadow-lg mb-8">
         <h3 className="text-lg font-semibold">Health Metrics Over Time</h3>
         <Line data={data} options={{ responsive: true }} />
       </div>
       <GoogleMapWidget />
-    </div>
+    </motion.div>
   );
 };
 

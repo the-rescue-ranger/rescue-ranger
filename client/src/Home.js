@@ -1,19 +1,21 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 const Home = () => {
   return (
-    <div className="flex flex-col items-center p-8 bg-gradient-to-r from-blue-500 to-indigo-500 min-h-screen text-white">
-      <h1 className="text-5xl font-bold mb-4 animate__animated animate__fadeInDown">
-        Rescue Ranger
-      </h1>
-      <p className="text-xl mb-6 animate__animated animate__fadeIn animate__delay-1s">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.
+    <motion.div
+      className="p-5 bg-white rounded-lg shadow-lg"
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 50, opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h1 className="text-4xl font-bold">Smart Watch</h1>
+      <p className="mt-4 text-gray-600">
+        Our smart watch offers heart rate monitoring, SPo2 tracking, and live location services. It’s the perfect fitness companion!
       </p>
-      <img src="watch-image.jpg" alt="Rescue Ranger" className="mt-4 rounded-lg shadow-lg animate__animated animate__zoomIn" />
-      <a href="#features" className="mt-6 px-4 py-2 bg-white text-blue-500 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-        Explore Features
-      </a>
-    </div>
+      <img src="watch-image.jpg" alt="Watch" className="mt-4 rounded-lg" />
+    </motion.div>
   );
 };
 
