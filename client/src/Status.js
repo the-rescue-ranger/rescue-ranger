@@ -1,5 +1,16 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Filler,
+} from 'chart.js';
+
+// Register the required components
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler);
 
 const GoogleMapWidget = () => {
   return (
@@ -25,24 +36,26 @@ const Status = () => {
       {
         label: "Heart Rate (BPM)",
         data: [70, 75, 72, 78, 74],
-        borderColor: "rgba(255, 99, 132, 1)",
+        borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         fill: true,
+        tension: 0.1,
       },
       {
         label: "SPo2 (%)",
         data: [95, 94, 96, 97, 95],
-        borderColor: "rgba(54, 162, 235, 1)",
+        borderColor: "rgb(54, 162, 235)",
         backgroundColor: "rgba(54, 162, 235, 0.2)",
         fill: true,
+        tension: 0.1,
       },
     ],
   };
 
   return (
-    <div className="p-5">
+    <div className="p-8 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-bold mb-5">Status Overview</h2>
-      <div className="bg-white p-5 rounded-lg shadow-lg mb-8">
+      <div className="bg-white p-5 rounded-lg shadow-lg mb-8 transition-transform transform hover:scale-105">
         <h3 className="text-lg font-semibold">Health Metrics Over Time</h3>
         <Line data={data} options={{ responsive: true }} />
       </div>

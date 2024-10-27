@@ -4,27 +4,24 @@ import Home from "./Home";
 import Status from "./Status";
 import About from "./About";
 import Emergency from "./Emergency";
-import './styles.css'; // Include your new styles
 
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <nav className="navbar">
-          <h1 className="logo">Rescue Ranger</h1>
-          <div className="nav-links">
-            <Link to="/">Home</Link>
-            <Link to="/status">Status</Link>
-            <Link to="/about">About Us</Link>
-            <Link to="/emergency">Emergency</Link>
-          </div>
+      <div className="p-5 bg-gray-100">
+        <nav className="flex space-x-4">
+          <Link to="/" className="text-blue-500">Home</Link>
+          <Link to="/status" className="text-blue-500">Status</Link>
+          <Link to="/about" className="text-blue-500">About Us</Link>
+          <Link to="/emergency" className="text-blue-500">Emergency</Link> {/* New link */}
         </nav>
-        <div className="main-content">
+
+        <div className="mt-5">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/status" element={<Status />} />
             <Route path="/about" element={<About />} />
-            <Route path="/emergency" element={<Emergency />} />
+            <Route path="/emergency" element={<Emergency />} /> {/* New route */}
           </Routes>
         </div>
       </div>
