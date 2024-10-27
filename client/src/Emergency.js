@@ -1,52 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 
 const Emergency = () => {
-  const [sosAlert, setSosAlert] = useState(false);
-  const [alertDuration, setAlertDuration] = useState(0);
-  
-  const heartRate = 105; // Simulated high heart rate
-  const pulseRate = 55; // Simulated low pulse rate
+  const [heartRate, setHeartRate] = useState(90); // Sample data
+  const [pulseRate, setPulseRate] = useState(50); // Sample data
+  const [isEmergency, setIsEmergency] = useState(false);
 
   useEffect(() => {
     if (heartRate > 100 && pulseRate < 60) {
-      setAlertDuration((prev) => prev + 1);
-    } else {
-      setAlertDuration(0);
-      setSosAlert(false);
+      setTimeout(() => {
+        setIsEmergency(true);
+      }, 300000); // Declare emergency after 5 minutes
     }
-
-    if (alertDuration >= 5) {
-      setSosAlert(true);
-    }
-
-    const timer = setInterval(() => {
-      setAlertDuration((prev) => (prev < 5 ? prev + 1 : prev));
-    }, 60000); // Check every minute
-
-    return () => clearInterval(timer);
-  }, [alertDuration, heartRate, pulseRate]);
+  }, [heartRate, pulseRate]);
 
   return (
-    <motion.div
-      className="p-5"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h1 className="text-4xl font-bold">Emergency Alerts</h1>
-      {sosAlert ? (
-        <div className="mt-4 text-red-600">
-          <p className="text-xl">🚨 SOS Alert! 🚨</p>
-          <p>Your heart rate is high and pulse rate is low!</p>
+    <div className="p-5 bg-white rounded-lg shadow-lg transition-transform duration-300 hover:scale-105">
+      <h2 className="text-2xl font-bold mb-5">Emergency Status</h2>
+      {isEmergency ? (
+        <div className="p-4 bg-red-500 text-white rounded-lg text-center">
+          <h3 className="text-xl font-bold">🚨 SOS Declared! 🚨</h3>
+          <p className="mt-2">Heart rate is high and pulse rate is low!</p>
         </div>
       ) : (
-        <div className="mt-4 text-green-600">
-          <p>All readings are normal.</p>
-        </div>
+        <p className="text-gray-600">Monitoring heart rate and pulse...</p>
       )}
-    </motion.div>
+    </div>
   );
 };
 
