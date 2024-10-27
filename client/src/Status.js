@@ -42,9 +42,9 @@ const Status = () => {
   };
 
   return (
-    <div className="p-5">
+    <div className="p-8 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-bold mb-5">Status Overview</h2>
-      <div className="bg-white p-5 rounded-lg shadow-lg mb-8">
+      <div className="bg-white p-5 rounded-lg shadow-lg mb-8 transition-transform transform hover:scale-105">
         <h3 className="text-lg font-semibold">Health Metrics Over Time</h3>
         <Line data={data} options={{ responsive: true }} />
       </div>
