@@ -1,0 +1,44 @@
+import React, { useEffect, useState } from "react";
+
+const Emergency = () => {
+  const [heartRate, setHeartRate] = useState(80); // Example initial value
+  const [pulseRate, setPulseRate] = useState(60); // Example initial value
+  const [sosAlert, setSosAlert] = useState(false);
+  const [alertDuration, setAlertDuration] = useState(0); // Duration of abnormal readings
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Simulate reading new heart rate and pulse rate values
+      // Replace this with your actual data fetching logic
+      if (heartRate > 100 && pulseRate < 60) {
+        setAlertDuration((prev) => prev + 1);
+        if (alertDuration >= 5) { // 5 minutes of abnormal readings
+          setSosAlert(true);
+        }
+      } else {
+        setAlertDuration(0); // Reset if conditions are normal
+        setSosAlert(false);
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [heartRate, pulseRate, alertDuration]);
+
+  return (
+    <div className="p-5 bg-white rounded-lg shadow-lg">
+      <h1 className="text-4xl font-bold">Emergency Alert</h1>
+      {sosAlert ? (
+        <div className="mt-4 text-red-600">
+          <p className="text-xl">🚨 SOS Alert! 🚨</p>
+          <p>Your heart rate is high and pulse rate is low!</p>
+        </div>
+      ) : (
+        <div className="mt-4 text-green-600">
+          <p>All readings are normal.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Emergency;
