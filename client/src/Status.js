@@ -19,7 +19,6 @@ const GoogleMapWidget = () => {
 };
 
 const Status = () => {
-  // Sample data for heart rate and SPo2 line graphs
   const data = {
     labels: ["10:00", "10:05", "10:10", "10:15", "10:20"],
     datasets: [
@@ -45,14 +44,10 @@ const Status = () => {
   return (
     <div className="p-5">
       <h2 className="text-2xl font-bold mb-5">Status Overview</h2>
-
-      {/* Line Graphs */}
       <div className="bg-white p-5 rounded-lg shadow-lg mb-8">
         <h3 className="text-lg font-semibold">Health Metrics Over Time</h3>
         <Line data={data} options={{ responsive: true }} />
       </div>
-
-      {/* Google Maps Widget */}
       <GoogleMapWidget />
     </div>
   );

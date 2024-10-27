@@ -12,6 +12,7 @@ function App() {
           <Link to="/" className="text-blue-500">Home</Link>
           <Link to="/status" className="text-blue-500">Status</Link>
           <Link to="/about" className="text-blue-500">About Us</Link>
+          <a href="https://github.com/the-rescue-ranger" className="text-blue-500" target="_blank" rel="noopener noreferrer">GitHub</a>
         </nav>
 
         <div className="mt-5">
