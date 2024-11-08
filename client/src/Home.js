@@ -7,7 +7,7 @@ const Home = () => {
         Rescue Ranger
       </h1>
       <p className="text-xl mb-6 animate__animated animate__fadeIn animate__delay-1s">
-        Live.Think.Care
+        Live.Think.Care<br>
         Introducing our innovative Smart Safety and Health Band, designed to empower women, support elderly individuals, and enhance the well-being of corporate workers. 
       </p>
       <img src="watch-image.jpg" alt="Rescue Ranger" className="mt-4 rounded-lg shadow-lg animate__animated animate__zoomIn" />
