@@ -9,7 +9,6 @@ import {
   Filler,
 } from 'chart.js';
 
-// Register the required components
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler);
 
 const GoogleMapWidget = () => {
