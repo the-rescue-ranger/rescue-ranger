@@ -11,7 +11,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@import 'animate.css'; /* Ensure animate.css is installed and imported */
+@import 'animate.css';
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
