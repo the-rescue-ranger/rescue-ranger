@@ -5,8 +5,8 @@ const Emergency = () => {
   const [alertDuration, setAlertDuration] = useState(0); // Duration of abnormal readings
 
   // Example simulated heart rate and pulse rate values
-  const heartRate = 105; // Simulate high heart rate
-  const pulseRate = 55; // Simulate low pulse rate
+  const heartRate = 105;
+  const pulseRate = 55;
 
   useEffect(() => {
     const interval = setInterval(() => {
