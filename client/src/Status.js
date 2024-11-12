@@ -12,7 +12,7 @@ import {
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler);
 
 const GoogleMapWidget = ({ latitude, longitude }) => {
-  const src = `https://www.google.com/maps?q=${latitude},${longitude}&z=15&output=embed`;
+  const src = `https://www.google.com/maps?q=$${latitude},${longitude}&z=15&output=embed`;
 
   return (
     <div className="mt-8">
@@ -36,17 +36,26 @@ const Status = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("/api/health_data");
-      const data = await response.json();
-      setHealthData(data);
+      try {
+        const response = await fetch("/api/health_data"); // Replace with your API endpoint
+        const data = await response.json();
 
-      if (data.length > 0) {
-        const latestData = data[data.length - 1];
-        setLatestLocation({ lat: latestData.latitude, lng: latestData.longitude });
+        setHealthData(data);
+
+        if (data.length > 0) {
+          const latestData = data[data.length - 1];
+          setLatestLocation({ lat: latestData.latitude, lng: latestData.longitude });
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
+    // Consider using a polling interval or WebSocket connection for real-time updates
+    const intervalId = setInterval(fetchData, 5000); // Fetch data every 5 seconds
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const chartData = {
