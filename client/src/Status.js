@@ -37,7 +37,7 @@ const Status = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/health_data"); // Replace with your API endpoint
+        const response = await fetch("http://127.0.0.1:5000"); // Replace with your API endpoint
         const data = await response.json();
 
         setHealthData(data);
