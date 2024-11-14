@@ -9,6 +9,8 @@
 #define GPS_TX 3
 #define GSM_RX 4
 #define GSM_TX 5
+#define MAX30105_SCL 6
+#define MAX30105_SDA 7
 
 // Create instances of modules
 TinyGPSPlus gps;
