@@ -7,16 +7,17 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "animate.css": "^4.1.1",
-    "axios": "^1.7.7", 
+    "axios": "^1.x", 
     "chart.js": "^4.4.5", 
     "framer-motion": "^11.11.11", 
     "react": "^18.2.0", 
     "react-chartjs-2": "^5.2.0", 
     "react-dom": "^18.2.0", 
-    "react-router-dom": "^6.28.0", 
+    "react-router-dom": "^6.x", 
     "react-scripts": "5.0.1", 
-    "recharts": "^2.13.0",
-    "web-vitals": "^3.0.0" 
+    "recharts": "^2.x",
+    "web-vitals": "^3.0.0",
+    "lucide-react": "^0.263.1"
   },
   "scripts": {
     "start": "react-scripts start",
