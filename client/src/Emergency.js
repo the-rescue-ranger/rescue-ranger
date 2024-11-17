@@ -7,7 +7,7 @@ const Emergency = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   // Replace with your actual API endpoint to fetch emergency alerts
-  const apiUrl = "http://localhost:5000/emergency-alert";
+  const apiUrl = "https://rescue-ranger-server.onrender.com";
 
   useEffect(() => {
     const fetchEmergencyAlert = async () => {
