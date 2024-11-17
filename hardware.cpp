@@ -13,7 +13,7 @@ const char* WIFI_SSID = "YOUR_WIFI_SSID";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
 // Server Configuration
-const char* SERVER_URL = "http://your-server:5000/api/readings";
+const char* SERVER_URL = "https://rescue-ranger-server.onrender.com";
 const String DEVICE_ID = "DEVICE_001"; // Unique ID for this device
 
 // Pin Definitions
