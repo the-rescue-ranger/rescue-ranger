@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const fetchSensorData = async () => {
   try {
-    const response = await fetch("http://localhost:5000/data");
+    const response = await fetch("https://rescue-ranger-server.onrender.com");
     if (!response.ok) {
       throw new Error("Failed to fetch data from server");
     }
