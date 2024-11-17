@@ -256,7 +256,7 @@ void sendEmergencySMS() {
   delay(1000);
   
   String message = "EMERGENCY ALERT!\n";
-  message += "Patient needs attention!\n";
+  message += "Person needs attention!\n";
   message += "Heart Rate: " + String(beatAvg) + " BPM\n";
   message += "SpO2: " + String(spO2Value) + "%\n";
   message += "Location: http://maps.google.com/?q=";
