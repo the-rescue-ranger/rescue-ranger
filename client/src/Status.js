@@ -59,6 +59,7 @@ const GoogleMapWidget = ({ latitude, longitude }) => {
       </div>
       <div className="p-0 overflow-hidden rounded-b-lg">
         <iframe
+          title="Live GPS Location Map"
           src={mapUrl}
           width="100%"
           height="400"
