@@ -1,3 +1,6 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <TinyGPS++.h>
