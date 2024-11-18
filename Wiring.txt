@@ -1,0 +1,49 @@
+RESCUE RANGER DEVICE - WIRING CONNECTIONS
+=======================================
+
+1. MAX30105 Heart Rate & SpO2 Sensor
+-----------------------------------
+- VIN → 3.3V
+- GND → GND
+- SCL → D1 (GPIO5/SCL)
+- SDA → D2 (GPIO4/SDA)
+
+2. NEO-6M GPS Module
+-------------------
+- VCC → 3.3V
+- GND → GND
+- TX → D3 (GPS_RX_PIN)
+- RX → D4 (GPS_TX_PIN)
+
+3. SIM800L GSM Module
+--------------------
+- VCC → 4V (Requires external 3.7V-4.2V power supply)
+- GND → GND
+- TX → D1 (GSM_RX_PIN)
+- RX → D2 (GSM_TX_PIN)
+
+4. ESP8266 NodeMCU Connections
+-----------------------------
+- D1 → GSM TX
+- D2 → GSM RX
+- D3 → GPS TX
+- D4 → GPS RX
+- 3.3V → MAX30105 VIN, GPS VCC
+- GND → Common ground for all modules
+
+Power Requirements
+----------------
+- ESP8266: USB powered or 3.3V
+- MAX30105: 3.3V
+- NEO-6M GPS: 3.3V
+- SIM800L GSM: 3.7V-4.2V (requires separate power supply)
+
+Important Notes
+-------------
+1. All GND pins should be connected to a common ground
+2. SIM800L needs a dedicated power supply capable of handling current spikes
+3. Use voltage level shifters if connecting 5V modules
+4. MAX30105 I2C connections (SCL/SDA) share pins with GSM module - ensure proper operation
+5. GPS module should have clear view of sky for best reception
+6. Recommend adding 100μF capacitor between VCC and GND of SIM800L
+7. Use shielded cables for GPS antenna connections if extended
