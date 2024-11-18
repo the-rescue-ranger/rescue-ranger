@@ -21,6 +21,10 @@ const int GSM_TX_PIN = D2;  // Connect to SIM800L RX
 const int GPS_RX_PIN = D3;  // Connect to GPS TX
 const int GPS_TX_PIN = D4;  // Connect to GPS RX
 
+// I2C Pin Definitions for MAX30105
+const int SDA_PIN = D6;     // Define SDA pin
+const int SCL_PIN = D5;     // Define SCL pin
+
 // Emergency Contact
 const char* EMERGENCY_PHONE = "+919425477596";
 
@@ -67,7 +71,8 @@ void setup() {
 
     gsmSerial.begin(9600);
     gpsSerial.begin(9600); // Initialize GPS serial communication
-    Wire.begin();
+    
+    Wire.begin(SDA_PIN, SCL_PIN); // Initialize I2C with defined SDA and SCL pins
 
     initMAX30105();
   
