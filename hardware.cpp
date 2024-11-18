@@ -23,7 +23,7 @@ const int GPS_RX_PIN = D3;  // Connect to GPS TX
 const int GPS_TX_PIN = D4;  // Connect to GPS RX
 
 // Emergency Contact
-const char* EMERGENCY_PHONE = "+1234567890";
+const char* EMERGENCY_PHONE = "+94254";
 
 // Objects
 MAX30105 particleSensor;
