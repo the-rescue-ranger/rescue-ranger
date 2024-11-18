@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 
 // SIM800L Configuration
-const char* APN = "your_apn"; // Replace with your cellular APN
+const char* APN = "internet"; // Replace with your cellular APN
 const char* USERNAME = ""; // Usually empty
 const char* PASSWORD = ""; // Usually empty
 
