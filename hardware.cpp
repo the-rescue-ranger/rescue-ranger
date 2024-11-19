@@ -44,7 +44,7 @@ int beatAvg;
 int spO2Value;
 uint32_t irBuffer[100];
 uint32_t redBuffer[100];
-int32_t bufferLength = 100;
+int bufferIndex = 0; // Index for storing sensor data
 int32_t spo2;
 int8_t validSpO2;
 int32_t heartRate;
@@ -75,9 +75,7 @@ void setup() {
     Wire.begin(SDA_PIN, SCL_PIN); // Initialize I2C with defined SDA and SCL pins
 
     initMAX30105();
-  
     initGSM();
-  
     initCellular();
 }
 
@@ -157,137 +155,141 @@ void initCellular() {
 }
 
 void readSensors() {
-   particleSensor.check();  
+    particleSensor.check();  
     
-   while (particleSensor.available()) {
-       redBuffer[bufferLength] = particleSensor.getRed(); // Ensure these methods exist in your library
-       irBuffer[bufferLength] = particleSensor.getIR();   // Ensure these methods exist in your library
-       particleSensor.nextSample();                        // Ensure this method exists in your library
+    while (particleSensor.available()) {
+        redBuffer[bufferIndex] = particleSensor.getRed(); // Ensure these methods exist in your library
+        irBuffer[bufferIndex] = particleSensor.getIR();   // Ensure these methods exist in your library
+        particleSensor.nextSample();                        // Ensure this method exists in your library
         
-       maxim_heart_rate_and_oxygen_saturation(
-           irBuffer, bufferLength, redBuffer, &spo2, &validSpO2, &heartRate, &validHeartRate
-       );
+        maxim_heart_rate_and_oxygen_saturation(
+            irBuffer, bufferIndex + 1, redBuffer, &spo2, &validSpO2, &heartRate, &validHeartRate
+        );
         
-       if (validHeartRate && validSpO2) {
-           beatAvg = heartRate;
-           spO2Value = spo2;
-       }
-   }
+        if (validHeartRate && validSpO2) {
+            beatAvg = heartRate;
+            spO2Value = spo2;
+        }
+        bufferIndex++;
+        if (bufferIndex >= 100) bufferIndex = 0; // Reset buffer index if it exceeds the size
+    }
 }
 
 void updateGPSData() {
-   if (gps.location.isValid()) {
-       latitude = gps.location.lat();
-       longitude = gps.location.lng();
-       validLocation = true;
-   }
+    if (gps.location.isValid()) {
+        latitude = gps.location.lat();
+        longitude = gps.location.lng();
+        validLocation = true;
+    }
 }
 
 void sendDataToServer() {
-   if (!isCellularConnected()) {
-       Serial.println("Cellular not connected. Attempting reconnection...");
-       initCellular(); // Attempt to reconnect
-       return;
-   }
+    if (!isCellularConnected()) {
+        Serial.println("Cellular not connected. Attempting reconnection...");
+        initCellular(); // Attempt to reconnect
+        return;
+    }
 
-   StaticJsonDocument<200> doc;
-   doc["deviceId"] = DEVICE_ID;
-   doc["heartRate"] = beatAvg;
-   doc["spO2"] = spO2Value;
-   doc["location"]["latitude"] = latitude;
-   doc["location"]["longitude"] = longitude;
-   doc["batteryLevel"] = batteryLevel;
-   doc["timestamp"] = millis();
+    StaticJsonDocument<200> doc;
+    doc["deviceId"] = DEVICE_ID;
+    doc["heartRate"] = beatAvg;
+    doc["spO2"] = spO2Value;
+    doc["location"]["latitude"] = latitude;
+    doc["location"]["longitude"] = longitude;
+    doc["batteryLevel"] = batteryLevel;
+    doc["timestamp"] = millis();
 
-   String jsonString;
-   serializeJson(doc, jsonString);
+    String jsonString;
+    serializeJson(doc, jsonString);
 
-   gsmSerial.print("AT+CIPSTART=\"TCP\",\"");
-   gsmSerial.print(SERVER_URL);
-   gsmSerial.println("\",80");
-   delay(2000);
+    gsmSerial.print("AT+CIPSTART=\"TCP\",\"");
+    gsmSerial.print(SERVER_URL);
+    gsmSerial.println("\",80");
+    delay(2000);
 
-   gsmSerial.println("AT+CIPSEND");
-   delay(2000);
+    gsmSerial.println("AT+CIPSEND");
+    delay(2000);
 
-   gsmSerial.print("POST / HTTP/1.1\r\n");
-   gsmSerial.print("Host: ");
-   gsmSerial.print(SERVER_URL);
-   gsmSerial.print("\r\n");
-   gsmSerial.print("Content-Type: application/json\r\n");
-   gsmSerial.print("Content-Length: ");
-   gsmSerial.print(jsonString.length());
-   gsmSerial.print("\r\n\r\n");
-   
-   gsmSerial.print(jsonString);
-   
-   delay(2000); // Wait for server response
-   
-   Serial.println("Data sent to server.");
+    gsmSerial.print("POST / HTTP/1.1\r\n");
+    gsmSerial.print("Host: ");
+    gsmSerial.print(SERVER_URL);
+    gsmSerial.print("\r\n");
+    gsmSerial.print("Content-Type: application/json\r\n");
+    gsmSerial.print("Content-Length: ");
+    gsmSerial.print(jsonString.length());
+    gsmSerial.print("\r\n\r\n");
+    
+    gsmSerial.print(jsonString);
+    
+    delay(2000); // Wait for server response
+    
+    Serial.println("Data sent to server.");
 }
 
 bool isCellularConnected() {
-   gsmSerial.println("AT+SAPBR?"); 
-   delay(100);
-   String response;
+    gsmSerial.println("AT+SAPBR?"); 
+    delay(100);
+    String response;
 
-   while(gsmSerial.available()) {
-       response += char(gsmSerial.read());
-   }
+    while(gsmSerial.available()) {
+        response += char(gsmSerial.read());
+    }
 
-   return response.indexOf("1") != -1; // Check if connected
+    return response.indexOf("1") != -1; // Check if connected
 }
 
 void checkAndHandleEmergency() {
-   bool currentEmergency =
-       beatAvg < 60 || 
-       beatAvg > 100 || 
-       spO2Value < 95;
+    bool currentEmergency =
+        beatAvg < 60 || 
+        beatAvg > 100 || 
+        spO2Value < 95;
 
-   if (currentEmergency && !isEmergency) {
-       isEmergency = true;
-       sendEmergencySMS();
-   }
+    if (currentEmergency && !isEmergency) {
+        isEmergency = true;
+        sendEmergencySMS();
+    }
 
-   if (!currentEmergency && isEmergency) {
-       isEmergency = false;
-   }
+    if (!currentEmergency && isEmergency) {
+        isEmergency = false;
+    }
 }
 
 void sendEmergencySMS() {
-   Serial.println("Sending emergency SMS...");
+    Serial.println("Sending emergency SMS...");
 
-   gsmSerial.print("AT+CMGS=\"");
-   gsmSerial.print(EMERGENCY_PHONE);
-   gsmSerial.println("\"");
-   delay(1000);
+    gsmSerial.print("AT+CMGS=\"");
+    gsmSerial.print(EMERGENCY_PHONE);
+    gsmSerial.println("\"");
+    delay(1000);
 
-   String message = "EMERGENCY ALERT!\n";
-   message += "Person needs attention!\n";
-   message += "Heart Rate: " + String(beatAvg) + " BPM\n";
-   message += "SpO2: " + String(spO2Value) + "%\n";
-   message += "Location: http://maps.google.com/?q=" + String(latitude, 6) + "," + String(longitude, 6);
+    String message = "EMERGENCY ALERT!\n";
+    message += "Person needs attention!\n";
+    message += "Heart Rate: " + String(beatAvg) + " BPM\n";
+    message += "SpO2: " + String(spO2Value) + "%\n";
+    message += "Location: http://maps.google.com/?q=" + String(latitude, 6) + "," + String(longitude, 6);
 
-   gsmSerial.print(message);
-   
-   delay(100);
+    gsmSerial.print(message);
+    
+    delay(100);
 
-   gsmSerial.write(26); // Ctrl+Z to send SMS
-   delay(1000);
+    gsmSerial.write(26); // Ctrl+Z to send SMS
+    delay(1000);
 
-   Serial.println("Emergency SMS sent");
+    Serial.println("Emergency SMS sent");
 }
 
-float getBatteryVoltage() {
-   return analogRead(A0) * (4.2 / 1023.0); // Mock battery voltage calculation
+float getBatteryVoltage()
+{
+    return analogRead(A0) * (4.2 / 1023.0); // Mock battery voltage calculation
 }
 
 void updateBatteryLevel() {
-   float voltage = getBatteryVoltage();
-   
-   batteryLevel = ((voltage - 3.3) / (4.2 - 3.3)) * 100; 
-   
-   if (batteryLevel > 100) batteryLevel = 100; 
-   
-   if (batteryLevel < 0) batteryLevel = 0; 
+    float voltage = getBatteryVoltage();
+    
+    batteryLevel = ((voltage - 3.3) / (4.2 - 3.3)) * 100; 
+    
+    if (batteryLevel > 100) batteryLevel = 100; 
+    
+    if (batteryLevel < 0) batteryLevel = 0; 
 }
+
