@@ -1,28 +1,46 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const SERVER_URL = "https://rescueranger.pythonanywhere.com";
 
 const fetchSensorData = async () => {
   try {
-    const response = await fetch("https://rescue-ranger-server.onrender.com");
-    if (!response.ok) {
-      throw new Error("Failed to fetch data from server");
+    const response = await axios.get(SERVER_URL);
+    if (!response.data) {
+      throw new Error("No data received from server");
     }
-    const data = await response.json();
+    
+    // Validate received data
+    const requiredFields = ['heart_rate', 'spo2', 'latitude', 'longitude', 'temperature'];
+    requiredFields.forEach(field => {
+      if (!(field in response.data)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    });
+
     return {
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      heart_rate: data.heart_rate,
-      spo2: data.spo2,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      timestamp: new Date().toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      }),
+      heart_rate: Number(response.data.heart_rate),
+      spo2: Number(response.data.spo2),
+      temperature: Number(response.data.temperature),
+      latitude: Number(response.data.latitude),
+      longitude: Number(response.data.longitude),
     };
   } catch (error) {
     console.error("Error fetching sensor data:", error);
-    return null;
+    throw error;
   }
 };
 
 const HealthChart = ({ data }) => {
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) return (
+    <div className="p-4 text-gray-600">No data available</div>
+  );
 
   return (
     <div className="h-full w-full">
@@ -30,12 +48,45 @@ const HealthChart = ({ data }) => {
         <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} interval="preserveEnd" />
-          <YAxis yAxisId="hr" domain={[60, 100]} label={{ value: 'Heart Rate (BPM)', angle: -90, position: 'insideLeft' }} />
-          <YAxis yAxisId="spo2" orientation="right" domain={[90, 100]} label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight' }} />
-          <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }} labelStyle={{ fontWeight: 'bold' }} />
+          <YAxis 
+            yAxisId="hr" 
+            domain={[
+              dataPoint => Math.floor(Math.min(...data.map(d => d.heart_rate)) - 5),
+              dataPoint => Math.ceil(Math.max(...data.map(d => d.heart_rate)) + 5)
+            ]} 
+            label={{ value: 'Heart Rate (BPM)', angle: -90, position: 'insideLeft' }} 
+          />
+          <YAxis 
+            yAxisId="spo2" 
+            orientation="right" 
+            domain={[90, 100]} 
+            label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight' }} 
+          />
+          <Tooltip 
+            contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }} 
+            labelStyle={{ fontWeight: 'bold' }} 
+          />
           <Legend verticalAlign="top" height={36} />
-          <Line yAxisId="hr" type="monotone" dataKey="heart_rate" stroke="#ef4444" name="Heart Rate" strokeWidth={2} dot={false} animationDuration={300} />
-          <Line yAxisId="spo2" type="monotone" dataKey="spo2" stroke="#3b82f6" name="SpO2" strokeWidth={2} dot={false} animationDuration={300} />
+          <Line 
+            yAxisId="hr" 
+            type="monotone" 
+            dataKey="heart_rate" 
+            stroke="#ef4444" 
+            name="Heart Rate" 
+            strokeWidth={2} 
+            dot={false} 
+            animationDuration={300} 
+          />
+          <Line 
+            yAxisId="spo2" 
+            type="monotone" 
+            dataKey="spo2" 
+            stroke="#3b82f6" 
+            name="SpO2" 
+            strokeWidth={2} 
+            dot={false} 
+            animationDuration={300} 
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -77,14 +128,24 @@ const GoogleMapWidget = ({ latitude, longitude }) => {
 
 const Status = () => {
   const [healthData, setHealthData] = useState([]);
-  const [latestLocation, setLatestLocation] = useState({ lat: 37.7749, lng: -122.4194 });
+  const [latestLocation, setLatestLocation] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const updateData = async () => {
-      const newDataPoint = await fetchSensorData();
-      if (newDataPoint) {
-        setHealthData((prevData) => [...prevData.slice(-19), newDataPoint]);
-        setLatestLocation({ lat: newDataPoint.latitude, lng: newDataPoint.longitude });
+      try {
+        setError(null);
+        const newDataPoint = await fetchSensorData();
+        setHealthData(prevData => [...prevData.slice(-19), newDataPoint]);
+        setLatestLocation({ 
+          lat: newDataPoint.latitude, 
+          lng: newDataPoint.longitude 
+        });
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -95,6 +156,23 @@ const Status = () => {
     return () => clearInterval(intervalId);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 bg-red-50 rounded-lg">
+        <h2 className="text-2xl font-bold text-red-600">Error</h2>
+        <p className="mt-2 text-red-500">{error}</p>
+      </div>
+    );
+  }
+
   const getLatestMetric = (metric) => {
     if (healthData.length === 0) return null;
     return healthData[healthData.length - 1][metric];
@@ -102,7 +180,12 @@ const Status = () => {
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen space-y-8">
-      <h2 className="text-3xl font-bold">Status Overview</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold">Status Overview</h2>
+        <div className="text-sm text-gray-500">
+          Last updated: {healthData[healthData.length - 1]?.timestamp || 'N/A'}
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
@@ -137,10 +220,12 @@ const Status = () => {
         </div>
       </div>
 
-      <GoogleMapWidget 
-        latitude={latestLocation.lat} 
-        longitude={latestLocation.lng} 
-      />
+      {latestLocation && (
+        <GoogleMapWidget 
+          latitude={latestLocation.lat} 
+          longitude={latestLocation.lng} 
+        />
+      )}
     </div>
   );
 };
