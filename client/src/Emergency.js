@@ -1,52 +1,93 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const SERVER_URL = "https://rescueranger.pythonanywhere.com";
+
 const Emergency = () => {
   const [sosAlert, setSosAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // Replace with your actual API endpoint to fetch emergency alerts
-  const apiUrl = "https://rescue-ranger-server.onrender.com";
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEmergencyAlert = async () => {
-      try {
-        const response = await axios.get(apiUrl);
+    const checkVitalSigns = (data) => {
+      if (!data) return false;
+      
+      const heartRate = Number(data.heart_rate);
+      const spo2 = Number(data.spo2);
+      
+      return (
+        heartRate < 60 || heartRate > 100 || // Normal heart rate range
+        spo2 < 95 // Normal SpO2 range
+      );
+    };
 
-        if (response.data && response.data.message === "SOS") {
-          setSosAlert(true);
-          setAlertMessage("🚨 SOS Alert! Heart rate or SpO2 levels indicate an emergency!");
-        } else {
-          setSosAlert(false);
-          setAlertMessage("All readings are normal.");
+    const fetchEmergencyStatus = async () => {
+      try {
+        setError(null);
+        const response = await axios.get(SERVER_URL);
+        
+        if (!response.data) {
+          throw new Error("No data received from server");
         }
+
+        const isEmergency = checkVitalSigns(response.data);
+        setSosAlert(isEmergency);
+        setAlertMessage(
+          isEmergency
+            ? `🚨 Emergency Alert! ${
+                Number(response.data.heart_rate) < 60 || Number(response.data.heart_rate) > 100
+                  ? `Heart rate (${response.data.heart_rate} BPM) is abnormal. `
+                  : ""
+              }${
+                Number(response.data.spo2) < 95
+                  ? `SpO2 (${response.data.spo2}%) is low. `
+                  : ""
+              }Medical attention may be required!`
+            : "All vital signs are within normal ranges."
+        );
       } catch (error) {
-        setErrorMessage("Error fetching emergency alert: " + error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    // Fetch the emergency alert every 10 seconds
-    const interval = setInterval(fetchEmergencyAlert, 10000);
-
+    const interval = setInterval(fetchEmergencyStatus, 10000);
+    fetchEmergencyStatus(); // Initial fetch
+    
     return () => clearInterval(interval);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="p-5 bg-white rounded-lg shadow-lg">
+        <h1 className="text-4xl font-bold">Emergency Alert</h1>
+        <div className="mt-4">
+          <div className="animate-pulse h-6 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-5 bg-white rounded-lg shadow-lg">
       <h1 className="text-4xl font-bold">Emergency Alert</h1>
-
-      {errorMessage ? (
-        <div className="mt-4 text-red-600">
-          <p>{errorMessage}</p>
-        </div>
-      ) : sosAlert ? (
-        <div className="mt-4 text-red-600">
-          <p className="text-xl font-semibold">{alertMessage}</p>
+      {error ? (
+        <div className="mt-4 bg-red-50 p-4 rounded-lg">
+          <p className="text-red-600">{error}</p>
         </div>
       ) : (
-        <div className="mt-4 text-green-600">
-          <p className="text-lg">{alertMessage}</p>
+        <div className={`mt-4 ${sosAlert ? 'text-red-600' : 'text-green-600'}`}>
+          <p className={`${sosAlert ? 'text-xl' : 'text-lg'} font-semibold`}>
+            {alertMessage}
+          </p>
+          {sosAlert && (
+            <div className="mt-4 animate-pulse">
+              <div className="w-3 h-3 bg-red-600 rounded-full inline-block mr-2"></div>
+              <span className="text-red-600">Emergency services should be contacted</span>
+            </div>
+          )}
         </div>
       )}
     </div>
