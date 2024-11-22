@@ -30,6 +30,9 @@ void setup() {
     
     // Test GSM connection
     testGSMConnection();
+    
+    // Set APN for GPRS connection
+    setAPN("internet");
 }
 
 void loop() {
@@ -68,6 +71,19 @@ void testGSMConnection() {
             // SerialMon.println("Failed to connect to GSM Module.");
         }
     }
+}
+
+void setAPN(const char* apn) {
+    SerialAT.print("AT+CSTT=\"");
+    SerialAT.print(apn);
+    SerialAT.println("\",\"\",\"\""); // The second and third parameters are username and password, left empty here.
+    delay(1000); 
+
+    SerialAT.println("AT+CIICR"); // Bring up wireless connection
+    delay(2000); 
+
+    SerialAT.println("AT+CIFSR"); // Get local IP address
+    delay(1000);
 }
 
 void sendSMS(const char* number, const char* message) {
