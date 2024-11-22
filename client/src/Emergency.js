@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/health_data.db";
+const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/resku.cpython-310.pyc";
 
 const Emergency = () => {
   const [sosAlert, setSosAlert] = useState(false);
