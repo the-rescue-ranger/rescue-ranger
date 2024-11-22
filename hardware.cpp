@@ -1,109 +1,162 @@
-#include <Wire.h>
-#include "MAX30105.h"
-#include "heartRate.h"
-#include "spo2_algorithm.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
+#include <HardwareSerial.h>
 
-// Define pins for GSM module
-#define MODEM_TX 27  // TX pin of GSM (connect to RX of GSM)
-#define MODEM_RX 26  // RX pin of GSM (connect to TX of GSM)
+// WiFi credentials
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
 
-// Define pins for GPS
-static const int RXPin = 4, TXPin = 3; // GPS Serial pins
-static const uint32_t GPSBaud = 9600;  // GPS Baud rate
+// Server endpoint
+const char* serverUrl = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/resku.py";
+
+// GPS Module connection - Using ESP32's Hardware Serial 2
+#define GPS_SERIAL_RX 16  // GPS TX connects to ESP32 RX2 (GPIO 16)
+#define GPS_SERIAL_TX 17  // GPS RX connects to ESP32 TX2 (GPIO 17)
+
+// Create objects
 TinyGPSPlus gps;
-SoftwareSerial ss(RXPin, TXPin); // Software serial for GPS
+HardwareSerial GPSSerial(2); // Use hardware serial 2
 
-// MAX30102 settings
-MAX30105 particleSensor;
+// Device identifier
+const char* deviceId = "GPS_001";
 
-const byte RATE_SIZE = 4; // Increase this for more averaging. 4 is good.
-byte rates[RATE_SIZE];     // Array of heart rates
-byte rateSpot = 0;
-long lastBeat = 0;         // Time at which the last beat occurred
+// Battery monitoring
+const int batteryPin = 35;  // ADC pin for battery monitoring
 
-float beatsPerMinute;
-int beatAvg;
-
-// Function to send an SMS using AT commands
-void sendSMS(String message, String phoneNumber) {
-    Serial1.println("AT+CMGF=1"); // Set SMS mode to text
-    delay(100);
-    Serial1.print("AT+CMGS=\"");
-    Serial1.print(phoneNumber);
-    Serial1.println("\"");
-    delay(100);
-    Serial1.println(message); // Message content 
-    delay(100);
-    Serial1.write(26); // Send Ctrl+Z to indicate end of message
-}
+// Function declarations
+void connectWiFi();
+float getBatteryPercentage();
+void sendDataToServer(float latitude, float longitude, float battery);
 
 void setup() {
-    Serial.begin(115200);     // Initialize serial monitor
-    Serial1.begin(9600);      // Initialize serial for GSM module
-    ss.begin(GPSBaud);        // Initialize serial for GPS
-
-    // Initialize MAX30102 sensor
-    if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) {
-        Serial.println("MAX30102 was not found. Please check wiring/power.");
-        while (1); // Halt if sensor not found
-    }
+    // Start Serial Monitor
+    Serial.begin(115200);
     
-    particleSensor.setup(); // Configure sensor with default settings
-    particleSensor.setPulseAmplitudeRed(0x0A); // Turn Red LED to low to indicate sensor is running
-    particleSensor.setPulseAmplitudeGreen(0);   // Turn off Green LED
-
-    Serial.println("Place your index finger on the sensor with steady pressure.");
+    // Start GPS serial
+    GPSSerial.begin(9600, SERIAL_8N1, GPS_SERIAL_RX, GPS_SERIAL_TX);
+    
+    // Configure ADC for battery monitoring
+    analogReadResolution(12);  // Set ADC resolution to 12 bits
+    analogSetAttenuation(ADC_11db);  // Set ADC attenuation
+    
+    // Connect to WiFi
+    connectWiFi();
+    
+    Serial.println("System initialized and ready!");
 }
 
 void loop() {
-    long irValue = particleSensor.getIR();
-
-    if (checkForBeat(irValue) == true) {
-        long delta = millis() - lastBeat;
-        lastBeat = millis();
-        beatsPerMinute = 60 / (delta / 1000.0);
-
-        if (beatsPerMinute < 255 && beatsPerMinute > 20) {
-            rates[rateSpot++] = (byte)beatsPerMinute; // Store this reading in the array
-            rateSpot %= RATE_SIZE;                     // Wrap variable
-
-            // Take average of readings
-            beatAvg = 0;
-            for (byte x = 0; x < RATE_SIZE; x++)
-                beatAvg += rates[x];
-            beatAvg /= RATE_SIZE;
-        }
-    }
-
-    Serial.print("IR=");
-    Serial.print(irValue);
-    Serial.print(", BPM=");
-    Serial.print(beatsPerMinute);
-    Serial.print(", Avg BPM=");
-    Serial.print(beatAvg);
-
-    if (irValue < 50000)
-        Serial.print(" No finger?");
-
-    Serial.println();
-
+    static unsigned long lastSendTime = 0;
+    const unsigned long sendInterval = 5000;  // Send data every 5 seconds
+    
     // Read GPS data
-    while (ss.available() > 0) {
-        gps.encode(ss.read());
-        if (gps.location.isUpdated()) {
-            float latitude = gps.location.lat();
-            float longitude = gps.location.lng();
-
-            String smsMessage = "Lat: " + String(latitude) + ", Lng: " + String(longitude) +
-                                ", HR: " + String(beatsPerMinute) + ", Avg HR: " + String(beatAvg);
-            
-            sendSMS(smsMessage, "+919425477596"); // Replace with your phone number
-
-            delay(10000); // Delay before sending next SMS (10 seconds)
-        }
+    while (GPSSerial.available() > 0) {
+        gps.encode(GPSSerial.read());
     }
+    
+    // Check if it's time to send data and if we have valid GPS data
+    if (millis() - lastSendTime >= sendInterval && gps.location.isValid()) {
+        float latitude = gps.location.lat();
+        float longitude = gps.location.lng();
+        float battery = getBatteryPercentage();
+        
+        // Print values to Serial Monitor
+        Serial.println("Current readings:");
+        Serial.print("Latitude: "); Serial.println(latitude, 6);
+        Serial.print("Longitude: "); Serial.println(longitude, 6);
+        Serial.print("Battery: "); Serial.print(battery); Serial.println("%");
+        
+        // Send data to server
+        sendDataToServer(latitude, longitude, battery);
+        
+        lastSendTime = millis();
+    }
+    
+    // Check WiFi connection and reconnect if needed
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi connection lost. Reconnecting...");
+        connectWiFi();
+    }
+    
+    // Small delay to prevent overwhelming the GPS module
+    delay(10);
+}
 
-    delay(100); // Small delay to avoid overwhelming the loop
+void connectWiFi() {
+    Serial.print("Connecting to WiFi");
+    WiFi.begin(ssid, password);
+    
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nWiFi connected!");
+        Serial.print("IP address: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\nWiFi connection failed!");
+    }
+}
+
+float getBatteryPercentage() {
+    // Read battery voltage through voltage divider
+    // Assuming 3.3V reference voltage and voltage divider ratio
+    // Adjust these values based on your hardware setup
+    const float maxVoltage = 4.2;  // Max battery voltage
+    const float minVoltage = 3.3;  // Min battery voltage
+    
+    int rawValue = analogRead(batteryPin);
+    float voltage = (rawValue / 4095.0) * 3.3 * 2; // Adjust multiplier based on voltage divider
+    
+    // Convert to percentage
+    float percentage = ((voltage - minVoltage) / (maxVoltage - minVoltage)) * 100;
+    percentage = constrain(percentage, 0, 100);
+    
+    return percentage;
+}
+
+void sendDataToServer(float latitude, float longitude, float battery) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        
+        // Create JSON document
+        StaticJsonDocument<200> doc;
+        doc["deviceId"] = deviceId;
+        
+        JsonObject location = doc.createNestedObject("location");
+        location["latitude"] = latitude;
+        location["longitude"] = longitude;
+        
+        doc["batteryLevel"] = (int)battery;
+        doc["timestamp"] = String(millis());
+        
+        // Serialize JSON to string
+        String jsonString;
+        serializeJson(doc, jsonString);
+        
+        // Configure HTTP request
+        http.begin(serverUrl);
+        http.addHeader("Content-Type", "application/json");
+        
+        // Send POST request
+        int httpResponseCode = http.POST(jsonString);
+        
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("HTTP Response code: " + String(httpResponseCode));
+            Serial.println("Response: " + response);
+        } else {
+            Serial.println("Error on sending POST: " + String(httpResponseCode));
+        }
+        
+        http.end();
+    } else {
+        Serial.println("Error: WiFi not connected");
+    }
 }
