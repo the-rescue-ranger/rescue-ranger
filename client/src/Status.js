@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/health_data.db";
+const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/resku.cpython-310.pyc";
 
 const fetchSensorData = async () => {
   try {
