@@ -2,34 +2,26 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const SERVER_URL = "https://rescueranger.pythonanywhere.com";
+const SERVER_URL = "https://rescueranger.pythonanywhere.com/api/readings";
 
 const fetchSensorData = async () => {
   try {
     const response = await axios.get(SERVER_URL);
-    if (!response.data) {
+    if (!response.data || response.data.length === 0) {
       throw new Error("No data received from server");
     }
     
-    // Validate received data
-    const requiredFields = ['heart_rate', 'spo2', 'latitude', 'longitude', 'temperature'];
-    requiredFields.forEach(field => {
-      if (!(field in response.data)) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    });
-
+    const latestData = response.data[response.data.length - 1];
     return {
-      timestamp: new Date().toLocaleTimeString([], { 
+      timestamp: new Date(latestData.timestamp).toLocaleTimeString([], { 
         hour: '2-digit', 
         minute: '2-digit', 
         second: '2-digit' 
       }),
-      heart_rate: Number(response.data.heart_rate),
-      spo2: Number(response.data.spo2),
-      temperature: Number(response.data.temperature),
-      latitude: Number(response.data.latitude),
-      longitude: Number(response.data.longitude),
+      heart_rate: Number(latestData.heart_rate),
+      spo2: Number(latestData.spo2),
+      latitude: Number(latestData.latitude),
+      longitude: Number(latestData.longitude),
     };
   } catch (error) {
     console.error("Error fetching sensor data:", error);
@@ -38,90 +30,36 @@ const fetchSensorData = async () => {
 };
 
 const HealthChart = ({ data }) => {
-  if (!data || data.length === 0) return (
-    <div className="p-4 text-gray-600">No data available</div>
-  );
+  if (!data || data.length === 0) return <div className="p-4 text-gray-600">No data available</div>;
 
   return (
-    <div className="h-full w-full">
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} interval="preserveEnd" />
-          <YAxis 
-            yAxisId="hr" 
-            domain={[
-              dataPoint => Math.floor(Math.min(...data.map(d => d.heart_rate)) - 5),
-              dataPoint => Math.ceil(Math.max(...data.map(d => d.heart_rate)) + 5)
-            ]} 
-            label={{ value: 'Heart Rate (BPM)', angle: -90, position: 'insideLeft' }} 
-          />
-          <YAxis 
-            yAxisId="spo2" 
-            orientation="right" 
-            domain={[90, 100]} 
-            label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight' }} 
-          />
-          <Tooltip 
-            contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }} 
-            labelStyle={{ fontWeight: 'bold' }} 
-          />
-          <Legend verticalAlign="top" height={36} />
-          <Line 
-            yAxisId="hr" 
-            type="monotone" 
-            dataKey="heart_rate" 
-            stroke="#ef4444" 
-            name="Heart Rate" 
-            strokeWidth={2} 
-            dot={false} 
-            animationDuration={300} 
-          />
-          <Line 
-            yAxisId="spo2" 
-            type="monotone" 
-            dataKey="spo2" 
-            stroke="#3b82f6" 
-            name="SpO2" 
-            strokeWidth={2} 
-            dot={false} 
-            animationDuration={300} 
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+        <YAxis yAxisId="hr" domain={[50, 120]} label={{ value: 'Heart Rate (BPM)', angle: -90, position: 'insideLeft' }} />
+        <YAxis yAxisId="spo2" orientation="right" domain={[90, 100]} label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight' }} />
+        <Tooltip />
+        <Legend verticalAlign="top" height={36} />
+        <Line yAxisId="hr" type="monotone" dataKey="heart_rate" stroke="#ef4444" name="Heart Rate" strokeWidth={2} dot={false} />
+        <Line yAxisId="spo2" type="monotone" dataKey="spo2" stroke="#3b82f6" name="SpO2" strokeWidth={2} dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
   );
 };
 
 const GoogleMapWidget = ({ latitude, longitude }) => {
   if (!latitude || !longitude) return null;
 
-  const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345094326!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z!5e0!3m2!1sen!2sau!4v1632823956034!5m2!1sen!2sau`;
+  const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345094326!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!5e0!3m2!1sen!2sau!4v1632823956034!5m2!1sen!2sau`;
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          Live Location
-          <span className="text-sm font-normal text-gray-500">
-            ({latitude.toFixed(4)}, {longitude.toFixed(4)})
-          </span>
-        </h3>
+        <h3 className="text-lg font-semibold">Live Location</h3>
+        <span className="text-sm text-gray-500">({latitude.toFixed(4)}, {longitude.toFixed(4)})</span>
       </div>
-      <div className="p-0 overflow-hidden rounded-b-lg">
-        <iframe
-          title="Live GPS Location Map"
-          src={mapUrl}
-          width="100%"
-          height="400"
-          frameBorder="0"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="rounded-lg"
-        />
-      </div>
+      <iframe title="Live GPS Location Map" src={mapUrl} width="100%" height={400} frameBorder="0" style={{ border: 0 }} allowFullScreen loading="lazy"/>
     </div>
   );
 };
@@ -138,10 +76,7 @@ const Status = () => {
         setError(null);
         const newDataPoint = await fetchSensorData();
         setHealthData(prevData => [...prevData.slice(-19), newDataPoint]);
-        setLatestLocation({ 
-          lat: newDataPoint.latitude, 
-          lng: newDataPoint.longitude 
-        });
+        setLatestLocation({ lat: newDataPoint.latitude, lng: newDataPoint.longitude });
       } catch (error) {
         setError(error.message);
       } finally {
@@ -149,19 +84,13 @@ const Status = () => {
       }
     };
 
-    // Initial fetch
     updateData();
-    
     const intervalId = setInterval(updateData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (error) {
@@ -173,58 +102,25 @@ const Status = () => {
     );
   }
 
-  const getLatestMetric = (metric) => {
-    if (healthData.length === 0) return null;
-    return healthData[healthData.length - 1][metric];
-  };
-
   return (
     <div className="p-8 bg-gray-100 min-h-screen space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Status Overview</h2>
-        <div className="text-sm text-gray-500">
-          Last updated: {healthData[healthData.length - 1]?.timestamp || 'N/A'}
-        </div>
-      </div>
-      
+      <h2 className="text-3xl font-bold">Status Overview</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold">Current Heart Rate</h3>
-          </div>
-          <div className="p-4">
-            <div className="text-4xl font-bold text-red-500">
-              {getLatestMetric('heart_rate')} BPM
-            </div>
-          </div>
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold">Current Heart Rate</h3>
+          <div className="text-4xl font-bold text-red-500">{healthData[healthData.length - 1]?.heart_rate} BPM</div>
         </div>
-        
-        <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold">Current SpO2</h3>
-          </div>
-          <div className="p-4">
-            <div className="text-4xl font-bold text-blue-500">
-              {getLatestMetric('spo2')}%
-            </div>
-          </div>
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold">Current SpO2</h3>
+          <div className="text-4xl font-bold text-blue-500">{healthData[healthData.length - 1]?.spo2}%</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
-        <div className="p-4 border-b">
-          <h3 className="text-lg font-semibold">Health Metrics Over Time</h3>
-        </div>
-        <div className="p-4">
-          <HealthChart data={healthData} />
-        </div>
-      </div>
+      {/* Health Metrics Over Time */}
+      <HealthChart data={healthData} />
 
       {latestLocation && (
-        <GoogleMapWidget 
-          latitude={latestLocation.lat} 
-          longitude={latestLocation.lng} 
-        />
+        <GoogleMapWidget latitude={latestLocation.lat} longitude={latestLocation.lng} />
       )}
     </div>
   );
