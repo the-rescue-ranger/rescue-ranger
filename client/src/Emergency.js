@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const SERVER_URL = "https://rescueranger.pythonanywhere.com";
+const SERVER_URL = "https://rescueranger.pythonanywhere.com/api/readings";
 
 const Emergency = () => {
   const [sosAlert, setSosAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [locationDetails, setLocationDetails] = useState(null);
 
   useEffect(() => {
     const checkVitalSigns = (data) => {
       if (!data) return false;
-      
-      const heartRate = Number(data.heart_rate);
-      const spo2 = Number(data.spo2);
-      
       return (
-        heartRate < 60 || heartRate > 100 || // Normal heart rate range
-        spo2 < 95 // Normal SpO2 range
+        data.heart_rate < 60 || data.heart_rate > 100 || data.spo2 < 95
       );
     };
 
@@ -27,25 +23,29 @@ const Emergency = () => {
         setError(null);
         const response = await axios.get(SERVER_URL);
         
-        if (!response.data) {
+        if (!response.data || response.data.length === 0) {
           throw new Error("No data received from server");
         }
 
-        const isEmergency = checkVitalSigns(response.data);
+        const latestData = response.data[response.data.length - 1];
+        
+        const isEmergency = checkVitalSigns(latestData);
+        
         setSosAlert(isEmergency);
-        setAlertMessage(
-          isEmergency
-            ? `🚨 Emergency Alert! ${
-                Number(response.data.heart_rate) < 60 || Number(response.data.heart_rate) > 100
-                  ? `Heart rate (${response.data.heart_rate} BPM) is abnormal. `
-                  : ""
-              }${
-                Number(response.data.spo2) < 95
-                  ? `SpO2 (${response.data.spo2}%) is low. `
-                  : ""
-              }Medical attention may be required!`
-            : "All vital signs are within normal ranges."
-        );
+        
+        if (isEmergency) {
+          setLocationDetails({
+            latitude: latestData.latitude,
+            longitude: latestData.longitude,
+          });
+          setAlertMessage(
+            `🚨 Emergency Alert! Heart rate (${latestData.heart_rate} BPM) is abnormal. SpO2 (${latestData.spo2}%) is low. Medical attention may be required!`
+          );
+        } else {
+          setAlertMessage("All vital signs are within normal ranges.");
+          setLocationDetails(null);
+        }
+        
       } catch (error) {
         setError(error.message);
       } finally {
@@ -53,42 +53,46 @@ const Emergency = () => {
       }
     };
 
-    const interval = setInterval(fetchEmergencyStatus, 10000);
-    fetchEmergencyStatus(); // Initial fetch
+    fetchEmergencyStatus();
     
-    return () => clearInterval(interval);
+    const intervalId = setInterval(fetchEmergencyStatus, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
   if (loading) {
     return (
-      <div className="p-5 bg-white rounded-lg shadow-lg">
-        <h1 className="text-4xl font-bold">Emergency Alert</h1>
-        <div className="mt-4">
-          <div className="animate-pulse h-6 bg-gray-200 rounded w-3/4"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        Loading Emergency Status...
       </div>
     );
   }
 
   return (
-    <div className="p-5 bg-white rounded-lg shadow-lg">
-      <h1 className="text-4xl font-bold">Emergency Alert</h1>
+    <div className={`p-8 ${sosAlert ? "bg-red-50" : "bg-green-50"} rounded-lg`}>
       {error ? (
-        <div className="mt-4 bg-red-50 p-4 rounded-lg">
-          <p className="text-red-600">{error}</p>
-        </div>
+        <div>Error: {error}</div>
       ) : (
-        <div className={`mt-4 ${sosAlert ? 'text-red-600' : 'text-green-600'}`}>
-          <p className={`${sosAlert ? 'text-xl' : 'text-lg'} font-semibold`}>
-            {alertMessage}
-          </p>
-          {sosAlert && (
-            <div className="mt-4 animate-pulse">
-              <div className="w-3 h-3 bg-red-600 rounded-full inline-block mr-2"></div>
-              <span className="text-red-600">Emergency services should be contacted</span>
-            </div>
+        <>
+          <h2 className={`text-xl font-bold ${sosAlert ? "text-red-600" : "text-green-600"}`}>
+            Emergency Alert
+          </h2>
+          <p>{alertMessage}</p>
+
+          {sosAlert && locationDetails && (
+            <>
+              <p>Emergency services should be contacted.</p>
+              <a
+                href={`https://www.google.com/maps?q=${locationDetails.latitude},${locationDetails.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                View Location
+              </a>
+            </>
           )}
-        </div>
+        </>
       )}
     </div>
   );
