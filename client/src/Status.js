@@ -25,28 +25,26 @@ const HealthChart = ({ data }) => {
   );
 };
 
-const GoogleMapWidget = ({ latitude, longitude }) => {
-  const mapUrl = `https://www.google.com/maps/embed/v1/view?key=YOUR_API_KEY&center=${latitude},${longitude}&zoom=17`;
-
+const GoogleMapWidget = () => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="p-4 border-b">
         <h3 className="text-lg font-semibold">Live Location</h3>
-        <span className="text-sm text-gray-500">({latitude.toFixed(4)}, {longitude.toFixed(4)})</span>
+        <span className="text-sm text-gray-500">(22.6600, 75.8282)</span>
       </div>
       <iframe 
-        title="Live GPS Location Map" 
-        src={mapUrl} 
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3681.8330565997635!2d75.82823127427156!3d22.660012179429526!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3962fc72d7413f67%3A0xc0ce53c8015c7e3f!2sShivsagar%20Colony%2C%20Hukma%20Khedi%2C%20Indore%2C%20Madhya%20Pradesh%20452012!5e0!3m2!1sen!2sin!4v1732325378918!5m2!1sen!2sin" 
         width="100%" 
         height={400} 
-        frameBorder="0" 
         style={{ border: 0 }} 
         allowFullScreen 
-        loading="lazy"
+        loading="lazy" 
+        referrerPolicy="no-referrer-when-downgrade"
       />
     </div>
   );
 };
+
 const Status = () => {
   const [healthData, setHealthData] = useState(mockData);
   const [latestLocation] = useState({ lat: 22.6581313, lng: 75.8267194 });
