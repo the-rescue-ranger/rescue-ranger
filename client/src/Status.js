@@ -2,18 +2,34 @@ import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const mockData = [
-  { timestamp: Date.now(), heart_rate: 72, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
+  { timestamp: Date.now(), heart_rate: 100, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
   // Add more mock data points as needed
 ];
+
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  const options = {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  };
+  return date.toLocaleString('en-US', options);
+};
 
 const HealthChart = ({ data }) => {
   if (!data || data.length === 0) return <div className="p-4 text-gray-600">No data available</div>;
 
+  // Transform data to include formatted timestamps
+  const formattedData = data.map(item => ({
+    ...item,
+    formattedTimestamp: formatTimestamp(item.timestamp),
+  }));
+
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      <LineChart data={formattedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+        <XAxis dataKey="formattedTimestamp" tick={{ fontSize: 12 }} />
         <YAxis yAxisId="hr" domain={[50, 120]} label={{ value: 'Heart Rate (BPM)', angle: -90, position: 'insideLeft' }} />
         <YAxis yAxisId="spo2" orientation="right" domain={[90, 100]} label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight' }} />
         <Tooltip />
@@ -45,7 +61,6 @@ const GoogleMapWidget = () => {
     </div>
   );
 };
-
 
 const Status = () => {
   const [healthData, setHealthData] = useState(mockData);
