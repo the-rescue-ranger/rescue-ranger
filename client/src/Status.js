@@ -3,7 +3,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const mockData = [
   { timestamp: Date.now(), heart_rate: 75, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
-  // Add more mock data points as needed
 ];
 
 const formatTimestamp = (timestamp) => {
@@ -19,7 +18,6 @@ const formatTimestamp = (timestamp) => {
 const HealthChart = ({ data }) => {
   if (!data || data.length === 0) return <div className="p-4 text-gray-600">No data available</div>;
 
-  // Transform data to include formatted timestamps
   const formattedData = data.map(item => ({
     ...item,
     formattedTimestamp: formatTimestamp(item.timestamp),
@@ -69,13 +67,18 @@ const Status = () => {
   useEffect(() => {
     // Simulate data updates every few seconds
     const intervalId = setInterval(() => {
+      const lastHeartRate = healthData[healthData.length - 1]?.heart_rate || 75; // Default to last known heart rate
+      const newHeartRate = Math.max(60, Math.min(100, lastHeartRate + (Math.random() > 0.5 ? Math.floor(Math.random() * 5) : -Math.floor(Math.random() * 5)))); // Gradual change
+      const newSpO2 = Math.floor(Math.random() * (100 - 95 + 1)) + 95; // SpO2 between 95% and 100%
+
       const newDataPoint = {
         timestamp: Date.now(),
-        heart_rate: Math.floor(Math.random() * (100 - 60 + 1)) + 60, // Heart rate between 60 and 100 BPM
-        spo2: Math.floor(Math.random() * (100 - 95 + 1)) + 95, // SpO2 between 95% and 100%
+        heart_rate: newHeartRate,
+        spo2: newSpO2,
         latitude: latestLocation.lat,
         longitude: latestLocation.lng,
       };
+
       setHealthData(prevData => [...prevData.slice(-19), newDataPoint]);
     }, 5000);
 
