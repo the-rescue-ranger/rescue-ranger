@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const mockData = [
-  { timestamp: Date.now(), heart_rate: 100, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
+  { timestamp: Date.now(), heart_rate: 75, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
   // Add more mock data points as needed
 ];
 
@@ -71,8 +71,8 @@ const Status = () => {
     const intervalId = setInterval(() => {
       const newDataPoint = {
         timestamp: Date.now(),
-        heart_rate: Math.floor(Math.random() * (120 - 50 + 1)) + 50,
-        spo2: Math.floor(Math.random() * (100 - 90 + 1)) + 90,
+        heart_rate: Math.floor(Math.random() * (100 - 60 + 1)) + 60, // Heart rate between 60 and 100 BPM
+        spo2: Math.floor(Math.random() * (100 - 95 + 1)) + 95, // SpO2 between 95% and 100%
         latitude: latestLocation.lat,
         longitude: latestLocation.lng,
       };
