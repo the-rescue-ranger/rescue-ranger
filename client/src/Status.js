@@ -34,7 +34,7 @@ const GoogleMapWidget = () => {
       </div>
       <iframe 
         title="Map" 
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3681.8330565997635!2d75.82823127427156!3d22.660012179429526!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3962fc72d7413f67%3A0xc0ce53c8015c7e3f!2sShivsagar%20Colony%2C%20Hukma%20Khedi%2C%20Indore%2C%20Madhya%20Pradesh%20452012!5e0!3m2!1sen!2sin!4v1732325378918!5m2!1sen!2sin" 
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.804666328122!2d75.74224247404022!3d22.548988833837715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3962f789c6a8164f%3A0x2626101ae6dc763b!2sShri%20Sai%20Academy!5e0!3m2!1sen!2sin!4v1732330100223!5m2!1sen!2sin" 
         width="100%" 
         height={400} 
         style={{ border: 0 }} 
