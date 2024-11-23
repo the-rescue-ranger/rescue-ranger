@@ -1,97 +1,60 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
-const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/resku.cpython-310.pyc";
+const mockEmergencyData = {
+  heart_rate: Math.floor(Math.random() * (120 - 50 + 1)) + 50,
+  spo2: Math.floor(Math.random() * (100 - 90 + 1)) + 90,
+};
 
 const Emergency = () => {
   const [sosAlert, setSosAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [locationDetails, setLocationDetails] = useState(null);
+  
+  const checkVitalSigns = (data) => {
+    return (
+      data.heart_rate < 60 || data.heart_rate > 100 || data.spo2 < 95
+    );
+  };
 
   useEffect(() => {
-    const checkVitalSigns = (data) => {
-      if (!data) return false;
-      return (
-        data.heart_rate < 60 || data.heart_rate > 100 || data.spo2 < 95
+    const isEmergency = checkVitalSigns(mockEmergencyData);
+    
+    setSosAlert(isEmergency);
+    
+    if (isEmergency) {
+      setAlertMessage(
+        `🚨 Emergency Alert! Heart rate (${mockEmergencyData.heart_rate} BPM) is abnormal. SpO2 (${mockEmergencyData.spo2}%) is low. Medical attention may be required!`
       );
-    };
-
-    const fetchEmergencyStatus = async () => {
-      try {
-        setError(null);
-        const response = await axios.get(SERVER_URL);
-        
-        if (!response.data || response.data.length === 0) {
-          throw new Error("No data received from server");
-        }
-
-        const latestData = response.data[response.data.length - 1];
-        
-        const isEmergency = checkVitalSigns(latestData);
-        
-        setSosAlert(isEmergency);
-        
-        if (isEmergency) {
-          setLocationDetails({
-            latitude: latestData.latitude,
-            longitude: latestData.longitude,
-          });
-          setAlertMessage(
-            `🚨 Emergency Alert! Heart rate (${latestData.heart_rate} BPM) is abnormal. SpO2 (${latestData.spo2}%) is low. Medical attention may be required!`
-          );
-        } else {
-          setAlertMessage("All vital signs are within normal ranges.");
-          setLocationDetails(null);
-        }
-        
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEmergencyStatus();
+    } else {
+      setAlertMessage("All vital signs are within normal ranges.");
+    }
     
-    const intervalId = setInterval(fetchEmergencyStatus, 10000); // Check every 10 seconds
-    
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+    // Simulate updates every few seconds
+    const intervalId = setInterval(() => {
+      // Update mock emergency data here if needed
+    }, 10000); 
+
+    return () => clearInterval(intervalId); 
   }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading Emergency Status...
-      </div>
-    );
-  }
 
   return (
     <div className={`p-8 ${sosAlert ? "bg-red-50" : "bg-green-50"} rounded-lg`}>
-      {error ? (
-        <div>Error: {error}</div>
-      ) : (
-        <>
-          <h2 className={`text-xl font-bold ${sosAlert ? "text-red-600" : "text-green-600"}`}>
-            Emergency Alert
-          </h2>
-          <p>{alertMessage}</p>
+      <h2 className={`text-xl font-bold ${sosAlert ? "text-red-600" : "text-green-600"}`}>
+        Emergency Alert
+      </h2>
+      <p>{alertMessage}</p>
 
-          {sosAlert && locationDetails && (
-            <>
-              <p>Emergency services should be contacted.</p>
-              <a
-                href={`https://www.google.com/maps?q=${locationDetails.latitude},${locationDetails.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                View Location
-              </a>
-            </>
-          )}
+      {sosAlert && (
+        <>
+          <p>Emergency services should be contacted.</p>
+          {/* Fixed location link */}
+          <a
+            href={`https://www.google.com/maps/place/Shiv+Sagar+Colony/@22.6581313,75.8267194`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            View Location
+          </a>
         </>
       )}
     </div>
