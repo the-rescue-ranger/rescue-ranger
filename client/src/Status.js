@@ -26,7 +26,7 @@ const HealthChart = ({ data }) => {
 };
 
 const GoogleMapWidget = ({ latitude, longitude }) => {
-  const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345094326!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!5e0!3m2!1sen!2sau!4v1632823956034!5m2!1sen!2sau`;
+  const mapUrl = `https://www.google.com/maps/embed/v1/view?key=YOUR_API_KEY&center=${latitude},${longitude}&zoom=17`;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -34,11 +34,19 @@ const GoogleMapWidget = ({ latitude, longitude }) => {
         <h3 className="text-lg font-semibold">Live Location</h3>
         <span className="text-sm text-gray-500">({latitude.toFixed(4)}, {longitude.toFixed(4)})</span>
       </div>
-      <iframe title="Live GPS Location Map" src={mapUrl} width="100%" height={400} frameBorder="0" style={{ border: 0 }} allowFullScreen loading="lazy"/>
+      <iframe 
+        title="Live GPS Location Map" 
+        src={mapUrl} 
+        width="100%" 
+        height={400} 
+        frameBorder="0" 
+        style={{ border: 0 }} 
+        allowFullScreen 
+        loading="lazy"
+      />
     </div>
   );
 };
-
 const Status = () => {
   const [healthData, setHealthData] = useState(mockData);
   const [latestLocation] = useState({ lat: 22.6581313, lng: 75.8267194 });
