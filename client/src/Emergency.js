@@ -11,7 +11,7 @@ const Emergency = () => {
   
   const checkVitalSigns = (data) => {
     return (
-      data.heart_rate < 60 || data.heart_rate > 100 || data.spo2 < 95
+      data.heart_rate < 60 || data.heart_rate > 140 || data.spo2 < 
     );
   };
 
