@@ -1,33 +1,10 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const SERVER_URL = "https://www.pythonanywhere.com/user/RescueRanger/files/home/RescueRanger/Resku/__pycache__/resku.cpython-310.pyc";
-
-const fetchSensorData = async () => {
-  try {
-    const response = await axios.get(SERVER_URL);
-    if (!response.data || response.data.length === 0) {
-      throw new Error("No data received from server");
-    }
-    
-    const latestData = response.data[response.data.length - 1];
-    return {
-      timestamp: new Date(latestData.timestamp).toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-      }),
-      heart_rate: Number(latestData.heart_rate),
-      spo2: Number(latestData.spo2),
-      latitude: Number(latestData.latitude),
-      longitude: Number(latestData.longitude),
-    };
-  } catch (error) {
-    console.error("Error fetching sensor data:", error);
-    throw error;
-  }
-};
+const mockData = [
+  { timestamp: Date.now(), heart_rate: 72, spo2: 98, latitude: 22.6581313, longitude: 75.8267194 },
+  // Add more mock data points as needed
+];
 
 const HealthChart = ({ data }) => {
   if (!data || data.length === 0) return <div className="p-4 text-gray-600">No data available</div>;
@@ -49,8 +26,6 @@ const HealthChart = ({ data }) => {
 };
 
 const GoogleMapWidget = ({ latitude, longitude }) => {
-  if (!latitude || !longitude) return null;
-
   const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345094326!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!5e0!3m2!1sen!2sau!4v1632823956034!5m2!1sen!2sau`;
 
   return (
@@ -65,42 +40,24 @@ const GoogleMapWidget = ({ latitude, longitude }) => {
 };
 
 const Status = () => {
-  const [healthData, setHealthData] = useState([]);
-  const [latestLocation, setLatestLocation] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [healthData, setHealthData] = useState(mockData);
+  const [latestLocation] = useState({ lat: 22.6581313, lng: 75.8267194 });
 
   useEffect(() => {
-    const updateData = async () => {
-      try {
-        setError(null);
-        const newDataPoint = await fetchSensorData();
-        setHealthData(prevData => [...prevData.slice(-19), newDataPoint]);
-        setLatestLocation({ lat: newDataPoint.latitude, lng: newDataPoint.longitude });
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Simulate data updates every few seconds
+    const intervalId = setInterval(() => {
+      const newDataPoint = {
+        timestamp: Date.now(),
+        heart_rate: Math.floor(Math.random() * (120 - 50 + 1)) + 50,
+        spo2: Math.floor(Math.random() * (100 - 90 + 1)) + 90,
+        latitude: latestLocation.lat,
+        longitude: latestLocation.lng,
+      };
+      setHealthData(prevData => [...prevData.slice(-19), newDataPoint]);
+    }, 5000);
 
-    updateData();
-    const intervalId = setInterval(updateData, 5000);
     return () => clearInterval(intervalId);
-  }, []);
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="p-8 bg-red-50 rounded-lg">
-        <h2 className="text-2xl font-bold text-red-600">Error</h2>
-        <p className="mt-2 text-red-500">{error}</p>
-      </div>
-    );
-  }
+  }, [latestLocation]);
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen space-y-8">
